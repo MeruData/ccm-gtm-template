@@ -34,58 +34,6 @@ ___TEMPLATE_PARAMETERS___
 
 [
   {
-    "type": "PARAM_TABLE",
-    "name": "defaultSettings",
-    "displayName": "Default settings",
-    "paramTableColumns": [
-      {
-        "param": {
-          "type": "TEXT",
-          "name": "region",
-          "simpleValueType": true,
-          "displayName": "Region"
-        },
-        "isUnique": true
-      },
-      {
-        "param": {
-          "type": "TEXT",
-          "name": "granted",
-          "displayName": "Granted Consent Types (comma separated)",
-          "simpleValueType": true
-        },
-        "isUnique": false
-      },
-      {
-        "param": {
-          "type": "TEXT",
-          "name": "denied",
-          "displayName": "Denied Consent Types (comma separated)",
-          "simpleValueType": true
-        },
-        "isUnique": false
-      },
-      {
-        "param": {
-          "type": "CHECKBOX",
-          "name": "ads_data_redaction",
-          "checkboxText": "Redact Ads Data",
-          "simpleValueType": true
-        },
-        "isUnique": false
-      },
-      {
-        "param": {
-          "type": "CHECKBOX",
-          "name": "url_passthrough",
-          "checkboxText": "Pass through URL parameters",
-          "simpleValueType": true
-        },
-        "isUnique": false
-      }
-    ]
-  },
-  {
     "type": "TEXT",
     "name": "scriptGuid",
     "displayName": "Meru Data CCM Script Guid",
@@ -96,6 +44,207 @@ ___TEMPLATE_PARAMETERS___
     "name": "cookieConsentName",
     "displayName": "Cookie Consent Name",
     "simpleValueType": true
+  },
+  {
+    "type": "GROUP",
+    "name": "newDefaultSettings",
+    "displayName": "Default Settings",
+    "groupStyle": "NO_ZIPPY",
+    "subParams": [
+      {
+        "type": "PARAM_TABLE",
+        "name": "defaultSettingRegionTable",
+        "displayName": "",
+        "paramTableColumns": [
+          {
+            "param": {
+              "type": "TEXT",
+              "name": "region",
+              "simpleValueType": true,
+              "displayName": "Region",
+              "help": "Enter Region codes, expressed using country and/or subdivisions in ISO 3166-2 format.",
+              "valueHint": "eg. US-CA, US-TX, CA, UK",
+              "canBeEmptyString": true
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "analytics_storage",
+              "displayName": "Analytics Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Enables storage, such as cookies (web) or device identifiers (apps), related to analytics, for example, visit duration."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_storage",
+              "displayName": "Ad Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Enables storage, such as cookies (web) or device identifiers (apps), related to advertising."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_user_data",
+              "displayName": "Ad User Data",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Sets consent for sending user data to Google for online advertising purposes."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_personalization",
+              "displayName": "Ad Personalization",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Sets consent for personalized advertising."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "functionality_storage",
+              "displayName": "Functionality Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Enables storage that supports the functionality of the website or app, for example, language settings"
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "personalization_storage",
+              "displayName": "Personalization Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Enables storage related to personalization, for example, video recommendations"
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "security_storage",
+              "displayName": "Security Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "granted",
+              "help": "Enables storage related to security such as authentication functionality, fraud prevention, and other user protection."
+            },
+            "isUnique": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "GROUP",
+    "name": "additionalSettings",
+    "displayName": "Additional Settings",
+    "groupStyle": "NO_ZIPPY",
+    "subParams": [
+      {
+        "type": "CHECKBOX",
+        "name": "ads_data_redaction",
+        "checkboxText": "Redact Ads Data",
+        "simpleValueType": true
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "url_passthrough",
+        "checkboxText": "Pass through URL parameters",
+        "simpleValueType": true
+      }
+    ]
   }
 ]
 
@@ -111,15 +260,11 @@ const getCookieValues = require("getCookieValues");
 const updateConsentState = require("updateConsentState");
 const setInWindow = require("setInWindow");
 const isConsentGranted = require("isConsentGranted");
-const callLater = require("callLater");
 const addEventCallback = require("addEventCallback");
 const JSON = require("JSON");
 const decode = require("decodeUriComponent");
 
-/*
- *   Splits the input string using comma as a delimiter, returning an array of
- *   strings
- */
+
 const splitInput = (input) => {
   return input
     .split(",")
@@ -127,26 +272,6 @@ const splitInput = (input) => {
     .filter((entry) => entry.length !== 0);
 };
 
-/*
- *   Processes a row of input from the default settings table, returning an object
- *   which can be passed as an argument to setDefaultConsentState
- */
-const parseCommandData = (settings) => {
-  const regions = splitInput(settings.region);
-  const granted = splitInput(settings.granted);
-  const denied = splitInput(settings.denied);
-  const commandData = {};
-  if (regions.length > 0) {
-    commandData.region = regions;
-  }
-  granted.forEach((entry) => {
-    commandData[entry] = "granted";
-  });
-  denied.forEach((entry) => {
-    commandData[entry] = "denied";
-  });
-  return commandData;
-};
 
 function setPreferencesFromRules(categories, gtagRules) {
   log(gtagRules);
@@ -194,17 +319,29 @@ function onConsentUpdate() {
 }
 
 const main = (data) => {
-  /*
-   * Optional settings using gtagSet
-   */
+
   gtagSet("ads_data_redaction", data.ads_data_redaction);
   gtagSet("url_passthrough", data.url_passthrough);
   gtagSet("developer_id.dYzUxZD", true);
 
   // Set default consent state(s)
-  data.defaultSettings.forEach((settings) => {
-    const defaultData = parseCommandData(settings);
-    setDefaultConsentState(defaultData);
+  data.defaultSettingRegionTable.forEach((row) => {
+    const region = splitInput(row.region);
+    let defaultConsentStatus = {
+      ad_storage: row.ad_storage,
+      ad_user_data: row.ad_user_data,
+      ad_personalization: row.ad_personalization,
+      analytics_storage: row.analytics_storage,
+      functionality_storage: row.functionality_storage,
+      personalization_storage: row.personalization_storage,
+      security_storage: row.security_storage,
+      wait_for_update: 500,
+    };
+    if(region.length > 0) {
+      defaultConsentStatus.region = region;
+    }
+    log(defaultConsentStatus);
+    setDefaultConsentState(defaultConsentStatus);
   });
 
   onConsentUpdate();
@@ -743,6 +880,6 @@ scenarios: []
 
 ___NOTES___
 
-Created on 2/1/2025, 4:51:28 pm
+Created on 2/1/2025, 7:25:01 pm
 
 
