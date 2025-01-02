@@ -1,0 +1,7 @@
+homepage: "https://www.merudata.com/"
+documentation: "https://www.merudata.com/"
+versions:
+  # Latest version
+  - sha: 
+    changeNotes: Initial release with GTM Template.
+  # Older versions
