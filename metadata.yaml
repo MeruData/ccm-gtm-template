@@ -1,5 +1,5 @@
 homepage: "https://www.merudata.com/"
-documentation: "https://github.com/MeruData/ccm-gtm-template?tab=readme-ov-file#readme-ov-file"
+documentation: "https://github.com/MeruData/ccm-gtm-template/blob/main/README.md"
 versions:
   # Latest version
   - sha: 98ee34283705bc273df8044b4c79c09524084f87
