@@ -349,7 +349,7 @@ const main = (data) => {
   var scriptGuid = data.scriptGuid;
   log("scriptGuid =", scriptGuid);
   var ccmLoaderUrl =
-    "https://ccm.merudata.app/assets/" + scriptGuid + "/ccm_loader.min.js";
+    encodeUrencodeURIComponent("https://ccm.merudata.app/assets/" + scriptGuid + "/ccm_loader.min.js");
   log(ccmLoaderUrl);
   injectScript(
     ccmLoaderUrl,
