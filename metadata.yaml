@@ -2,9 +2,11 @@ homepage: "https://www.merudata.com/"
 documentation: "https://github.com/MeruData/ccm-gtm-template/blob/main/README.md"
 versions:
   # Latest version
+  - sha: 3c8c75d0bf85525d69e49f2a835700a94abbfe21
+    changeNotes: Updated to use encoded url for initial script.
+  # Older versions
   - sha: 8ead78ab5405d492c54b7b36d5d3476708322bb9
     changeNotes: Updated documentation url.
-  # Older versions
   - sha: 98ee34283705bc273df8044b4c79c09524084f87
     changeNotes: Rearranged on saving the default settings by region.
   - sha: 0be3a9f44148d78c74a6375c840408adc89a7d35
