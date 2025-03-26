@@ -1,4 +1,4 @@
-___TERMS_OF_SERVICE___
+﻿___TERMS_OF_SERVICE___
 
 By creating or modifying this file you agree to Google Tag Manager's Community
 Template Gallery Developer Terms of Service available at
@@ -263,6 +263,7 @@ const isConsentGranted = require("isConsentGranted");
 const addEventCallback = require("addEventCallback");
 const JSON = require("JSON");
 const decode = require("decodeUriComponent");
+const encodeUri = require("encodeUri");
 
 
 const splitInput = (input) => {
@@ -349,7 +350,7 @@ const main = (data) => {
   var scriptGuid = data.scriptGuid;
   log("scriptGuid =", scriptGuid);
   var ccmLoaderUrl =
-    encodeUrencodeURIComponent("https://ccm.merudata.app/assets/" + scriptGuid + "/ccm_loader.min.js");
+    encodeUri("https://ccm.merudata.app/assets/" + scriptGuid + "/ccm_loader.min.js");
   log(ccmLoaderUrl);
   injectScript(
     ccmLoaderUrl,
