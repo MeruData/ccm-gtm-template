@@ -37,13 +37,82 @@ ___TEMPLATE_PARAMETERS___
     "type": "TEXT",
     "name": "scriptGuid",
     "displayName": "Meru Data CCM Script Guid",
-    "simpleValueType": true
+    "simpleValueType": true,
+    "valueValidators": [
+      {
+        "type": "NON_EMPTY"
+      }
+    ]
   },
   {
-    "type": "TEXT",
-    "name": "cookieConsentName",
-    "displayName": "Cookie Consent Name",
-    "simpleValueType": true
+    "type": "GROUP",
+    "name": "gpcSettings",
+    "displayName": "Global Privacy Control (GPC) Settings",
+    "groupStyle": "ZIPPY_OPEN",
+    "subParams": [
+      {
+        "type": "SELECT",
+        "name": "gpcVariable",
+        "displayName": "GPC Detection Variable",
+        "macrosInSelect": true,
+        "selectItems": [],
+        "simpleValueType": true,
+        "help": "Select a Custom JavaScript Variable that returns true when Global Privacy Control is detected. The variable should check navigator.globalPrivacyControl.",
+        "valueHint": "{{GPC Enabled}}"
+      },
+      {
+        "type": "PARAM_TABLE",
+        "name": "gpcCategoriesTable",
+        "displayName": "GPC Categories to Deny",
+        "help": "Configure which consent categories should be denied when GPC signal is detected. If no categories are specified, all categories except security_storage will be denied.",
+        "paramTableColumns": [
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "consentCategory",
+              "displayName": "Consent Category",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "ad_storage",
+                  "displayValue": "Ad Storage"
+                },
+                {
+                  "value": "ad_user_data",
+                  "displayValue": "Ad User Data"
+                },
+                {
+                  "value": "ad_personalization",
+                  "displayValue": "Ad Personalization"
+                },
+                {
+                  "value": "analytics_storage",
+                  "displayValue": "Analytics Storage"
+                },
+                {
+                  "value": "functionality_storage",
+                  "displayValue": "Functionality Storage"
+                },
+                {
+                  "value": "personalization_storage",
+                  "displayValue": "Personalization Storage"
+                }
+              ],
+              "simpleValueType": true,
+              "help": "Select the consent category to deny when GPC signal is detected."
+            },
+            "isUnique": true
+          }
+        ],
+        "enablingConditions": [
+          {
+            "paramName": "enable_gpc",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ]
+      }
+    ]
   },
   {
     "type": "GROUP",
@@ -222,6 +291,14 @@ ___TEMPLATE_PARAMETERS___
             },
             "isUnique": false
           }
+        ],
+        "valueValidators": [
+          {
+            "type": "TABLE_ROW_COUNT",
+            "args": [
+              1
+            ]
+          }
         ]
       }
     ]
@@ -236,13 +313,41 @@ ___TEMPLATE_PARAMETERS___
         "type": "CHECKBOX",
         "name": "ads_data_redaction",
         "checkboxText": "Redact Ads Data",
-        "simpleValueType": true
+        "simpleValueType": true,
+        "defaultValue": false
       },
       {
         "type": "CHECKBOX",
         "name": "url_passthrough",
         "checkboxText": "Pass through URL parameters",
-        "simpleValueType": true
+        "simpleValueType": true,
+        "defaultValue": false
+      }
+    ]
+  },
+  {
+    "type": "GROUP",
+    "name": "overrideSettings",
+    "displayName": "Override Settings (Advanced)",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "TEXT",
+        "name": "cookieConsentName",
+        "displayName": "Cookie Consent Name",
+        "simpleValueType": true,
+        "help": "Override the default cookie name. Leave empty to use the standard MeruData cookie name (mppCookie_Consent).",
+        "valueHint": "mppCookie_Consent",
+        "canBeEmptyString": true
+      },
+      {
+        "type": "TEXT",
+        "name": "ccmBaseUrl",
+        "displayName": "CCM Base URL",
+        "simpleValueType": true,
+        "help": "Override the default CCM base URL. Leave empty to use production (https://ccm.merudata.app). Useful for testing against staging environments.",
+        "valueHint": "https://ccm-stage.merudata.app",
+        "canBeEmptyString": true
       }
     ]
   }
@@ -264,116 +369,329 @@ const addEventCallback = require("addEventCallback");
 const JSON = require("JSON");
 const decode = require("decodeUriComponent");
 const encodeUri = require("encodeUri");
+const Object = require("Object");
+
+const CONSENT_CATEGORIES = {
+  AD_STORAGE: "ad_storage",
+  AD_USER_DATA: "ad_user_data", 
+  AD_PERSONALIZATION: "ad_personalization",
+  ANALYTICS_STORAGE: "analytics_storage",
+  FUNCTIONALITY_STORAGE: "functionality_storage",
+  PERSONALIZATION_STORAGE: "personalization_storage",
+  SECURITY_STORAGE: "security_storage"
+};
+
+const DEFAULT_CONSENT_STATE = {
+  GRANTED: "granted",
+  DENIED: "denied"
+};
+
+const CONFIG = {
+  CONSENT_WAIT_TIME: 500,
+  CCM_BASE_URL: "https://ccm.merudata.app/assets/",
+  DEVELOPER_ID: "dYzUxZD",
+  COOKIE_CONSENT_NAME: "mppCookie_Consent"
+};
+
+function isArray(value) {
+  return typeof value === 'object' && value !== null && typeof value.length === 'number';
+}
+
+function getConfigValue(data, path, defaultValue) {
+  const keys = path.split('.');
+  let value = data;
+  
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (value && typeof value === 'object' && value[key] !== undefined) {
+      value = value[key];
+    } else {
+      return defaultValue;
+    }
+  }
+  
+  return value !== undefined ? value : defaultValue;
+}
+
+function createDefaultDeniedPreferences() {
+  const preferences = {};
+  const categories = Object.values(CONSENT_CATEGORIES);
+  for (let i = 0; i < categories.length; i++) {
+    const categoryName = categories[i];
+    preferences[categoryName] = categoryName === CONSENT_CATEGORIES.SECURITY_STORAGE 
+      ? DEFAULT_CONSENT_STATE.GRANTED 
+      : DEFAULT_CONSENT_STATE.DENIED;
+  }
+  return preferences;
+}
 
 
 const splitInput = (input) => {
+  if (!input || typeof input !== 'string') {
+    return [];
+  }
   return input
     .split(",")
     .map((entry) => entry.trim())
     .filter((entry) => entry.length !== 0);
 };
 
+function validateGtagRules(gtagRules) {
+  if (!isArray(gtagRules)) {
+    log("Warning: gtagRules is not an array, using empty array");
+    return [];
+  }
+  return gtagRules;
+}
 
 function setPreferencesFromRules(categories, gtagRules) {
-  log(gtagRules);
-  log(categories);
-  let preferences = {
-    ad_storage: "denied",
-    ad_user_data: "denied",
-    ad_personalization: "denied",
-    analytics_storage: "denied",
-    functionality_storage: "denied",
-    personalization_storage: "denied",
-    security_storage: "granted",
-  };
+  log("setPreferencesFromRules - categories:", categories);
+  log("setPreferencesFromRules - gtagRules:", gtagRules);
+  
+  const validRules = validateGtagRules(gtagRules);
+  const preferences = createDefaultDeniedPreferences();
+  
+  if (!isArray(categories)) {
+    log("Warning: categories is not an array");
+    return preferences;
+  }
+  
   categories.forEach((optout) => {
-    log(optout);
-    gtagRules.forEach((rule) => {
-      log(rule);
-      log("rule.cm: " + rule.cm + ", optout: " + optout);
-      if (rule.cm == optout) {
-        preferences[rule.st] = "granted";
+    log("Processing category:", optout);
+    validRules.forEach((rule) => {
+      log("Checking rule:", rule);
+      if (rule && rule.cm && rule.st && rule.cm == optout) {
+        log("rule.cm: " + rule.cm + ", optout: " + optout + " - MATCH");
+        preferences[rule.st] = DEFAULT_CONSENT_STATE.GRANTED;
       }
     });
   });
-  if (gtagRules[1].cm == null) {
-    preferences[gtagRules[1].st] = preferences.ad_storage;
+  
+  if (validRules.length > 1 && validRules[1] && !validRules[1].cm && validRules[1].st) {
+    preferences[validRules[1].st] = preferences[CONSENT_CATEGORIES.AD_STORAGE];
   }
-  if (gtagRules[2].cm == null) {
-    preferences[gtagRules[2].st] = preferences.ad_storage;
+  if (validRules.length > 2 && validRules[2] && !validRules[2].cm && validRules[2].st) {
+    preferences[validRules[2].st] = preferences[CONSENT_CATEGORIES.AD_STORAGE];
   }
-  log(preferences);
+  
+  log("Final preferences:", preferences);
   updateConsentState(preferences);
 }
 
 function onConsentUpdate() {
-  log(data.cookieConsentName);
-  const mppConsentCookie = getCookieValues(data.cookieConsentName)[0];
-  log(mppConsentCookie);
-  if (!!mppConsentCookie) {
-    let consentCookie = JSON.parse(decode(mppConsentCookie));
-    if (!!consentCookie.mappings) {
-      let accepted_categories = consentCookie.categories;
-      setPreferencesFromRules(accepted_categories, consentCookie.mappings);
-    }
+  const cookieConsentName = getConfigValue(data, 'cookieConsentName', '') || CONFIG.COOKIE_CONSENT_NAME;
+  log("Cookie consent name:", cookieConsentName);
+  
+  const mppConsentCookie = getCookieValues(cookieConsentName)[0];
+  log("Retrieved consent cookie:", mppConsentCookie);
+  
+  if (!mppConsentCookie) {
+    log("No consent cookie found");
+    return;
+  }
+  
+  const consentCookie = JSON.parse(decode(mppConsentCookie));
+  if (consentCookie && consentCookie.mappings && isArray(consentCookie.categories)) {
+    const accepted_categories = consentCookie.categories;
+    setPreferencesFromRules(accepted_categories, consentCookie.mappings);
+  } else {
+    log("Warning: Invalid consent cookie structure or failed to parse");
   }
 }
 
+function detectGpcSignal() {
+  const gpcVariable = getConfigValue(data, 'gpcVariable', null);
+  
+  if (!gpcVariable) {
+    log("No GPC variable configured");
+    return false;
+  }
+  
+  const gpcSignal = gpcVariable === true || gpcVariable === 'true';
+  log("GPC signal from variable:", gpcSignal, "type:", typeof gpcVariable, "raw value:", gpcVariable);
+  
+  return gpcSignal;
+}
+
+function validateGpcConfiguration(gpcCategories) {
+  if (!isArray(gpcCategories)) {
+    log("GPC categories configuration is not an array, using defaults");
+    return [];
+  }
+  
+  const validCategories = [];
+  const validCategoryNames = Object.values(CONSENT_CATEGORIES);
+  
+  for (let i = 0; i < gpcCategories.length; i++) {
+    const row = gpcCategories[i];
+    if (!row || typeof row !== 'object') {
+      log("Invalid GPC category configuration at index " + i);
+      continue;
+    }
+    
+    if (!row.consentCategory || validCategoryNames.indexOf(row.consentCategory) === -1) {
+      log("Invalid or missing category in GPC configuration:", row.consentCategory);
+      continue;
+    }
+    
+    if (row.consentCategory === CONSENT_CATEGORIES.SECURITY_STORAGE) {
+      log("Warning: security_storage should not be denied via GPC");
+      continue;
+    }
+    
+    validCategories.push(row);
+  }
+  
+  return validCategories;
+}
+
+function createSelectiveDeniedPreferences(configuredCategories) {
+  const preferences = {};
+  const categories = Object.values(CONSENT_CATEGORIES);
+  
+  for (let i = 0; i < categories.length; i++) {
+    const categoryName = categories[i];
+    preferences[categoryName] = isConsentGranted(categoryName) ? DEFAULT_CONSENT_STATE.GRANTED : DEFAULT_CONSENT_STATE.DENIED;
+  }
+  
+  preferences[CONSENT_CATEGORIES.SECURITY_STORAGE] = DEFAULT_CONSENT_STATE.GRANTED;
+  
+  for (let i = 0; i < configuredCategories.length; i++) {
+    const row = configuredCategories[i];
+    if (row.consentCategory) {
+      preferences[row.consentCategory] = DEFAULT_CONSENT_STATE.DENIED;
+      log("GPC: Denying category " + row.consentCategory);
+    }
+  }
+  
+  return preferences;
+}
+
+function buildGpcPreferences() {
+  const configuredCategories = validateGpcConfiguration(
+    getConfigValue(data, 'gpcCategoriesTable', [])
+  );
+  
+  if (configuredCategories.length === 0) {
+    log("No specific GPC categories configured, denying all except security_storage");
+    return createDefaultDeniedPreferences();
+  }
+  
+  log("Using selective GPC category denial");
+  return createSelectiveDeniedPreferences(configuredCategories);
+}
+
+function applyConsentPreferences(preferences) {
+  log("Applying consent preferences:", preferences);
+  updateConsentState(preferences);
+}
+
+function isGpcEnabled() {
+  const gpcVariable = getConfigValue(data, 'gpcVariable', null);
+  return gpcVariable !== null && gpcVariable !== undefined && gpcVariable !== '';
+}
+
+function handleGpcSignal() {
+  if (!isGpcEnabled()) {
+    log("GPC detection disabled");
+    return;
+  }
+
+  const gpcSignal = detectGpcSignal();
+  if (!gpcSignal) {
+    log("GPC signal not detected or not enabled");
+    return;
+  }
+
+  log("GPC signal is enabled, applying consent restrictions");
+  const gpcPreferences = buildGpcPreferences();
+  applyConsentPreferences(gpcPreferences);
+}
+
 const main = (data) => {
+  const scriptGuid = getConfigValue(data, 'scriptGuid', '');
+  const adsDataRedaction = getConfigValue(data, 'ads_data_redaction', false);
+  const urlPassthrough = getConfigValue(data, 'url_passthrough', false);
+  const defaultSettingRegionTable = getConfigValue(data, 'defaultSettingRegionTable', []);
 
-  gtagSet("ads_data_redaction", data.ads_data_redaction);
-  gtagSet("url_passthrough", data.url_passthrough);
-  gtagSet("developer_id.dYzUxZD", true);
+  gtagSet("ads_data_redaction", adsDataRedaction);
+  gtagSet("url_passthrough", urlPassthrough);
+  gtagSet("developer_id." + CONFIG.DEVELOPER_ID, true);
 
-  // Set default consent state(s)
-  data.defaultSettingRegionTable.forEach((row) => {
-    const region = splitInput(row.region);
+  if (!isArray(defaultSettingRegionTable)) {
+    log("Warning: defaultSettingRegionTable is not an array");
+    return;
+  }
+  
+  defaultSettingRegionTable.forEach((row) => {
+    if (!row || typeof row !== 'object') {
+      log("Warning: Invalid row in defaultSettingRegionTable");
+      return;
+    }
+    
+    const region = splitInput(getConfigValue(row, 'region', ''));
     let defaultConsentStatus = {
-      ad_storage: row.ad_storage,
-      ad_user_data: row.ad_user_data,
-      ad_personalization: row.ad_personalization,
-      analytics_storage: row.analytics_storage,
-      functionality_storage: row.functionality_storage,
-      personalization_storage: row.personalization_storage,
-      security_storage: row.security_storage,
-      wait_for_update: 500,
+      ad_storage: getConfigValue(row, 'ad_storage', DEFAULT_CONSENT_STATE.DENIED),
+      ad_user_data: getConfigValue(row, 'ad_user_data', DEFAULT_CONSENT_STATE.DENIED),
+      ad_personalization: getConfigValue(row, 'ad_personalization', DEFAULT_CONSENT_STATE.DENIED),
+      analytics_storage: getConfigValue(row, 'analytics_storage', DEFAULT_CONSENT_STATE.DENIED),
+      functionality_storage: getConfigValue(row, 'functionality_storage', DEFAULT_CONSENT_STATE.DENIED),
+      personalization_storage: getConfigValue(row, 'personalization_storage', DEFAULT_CONSENT_STATE.DENIED),
+      security_storage: getConfigValue(row, 'security_storage', DEFAULT_CONSENT_STATE.GRANTED),
+      wait_for_update: CONFIG.CONSENT_WAIT_TIME,
     };
+    
     if(region.length > 0) {
       defaultConsentStatus.region = region;
     }
-    log(defaultConsentStatus);
+    
+    log("Setting default consent state:", defaultConsentStatus);
     setDefaultConsentState(defaultConsentStatus);
   });
 
   onConsentUpdate();
 
-  var scriptGuid = data.scriptGuid;
+  handleGpcSignal();
+
+  if (!scriptGuid) {
+    log("Warning: No scriptGuid provided, CCM loader will not be injected");
+    return;
+  }
+  
   log("scriptGuid =", scriptGuid);
-  var ccmLoaderUrl =
-    encodeUri("https://ccm.merudata.app/assets/" + scriptGuid + "/ccm_loader.min.js");
-  log(ccmLoaderUrl);
+  
+  const ccmBaseUrl = getConfigValue(data, 'ccmBaseUrl', '') || CONFIG.CCM_BASE_URL;
+  const lastChar = ccmBaseUrl.charAt(ccmBaseUrl.length - 1);
+  const baseUrlWithAssets = lastChar === '/' ? ccmBaseUrl + 'assets/' : ccmBaseUrl + '/assets/';
+  const ccmLoaderUrl = encodeUri(baseUrlWithAssets + scriptGuid + "/ccm_loader.min.js");
+  
+  log("Using CCM Base URL:", ccmBaseUrl);
+  log("Loading CCM from:", ccmLoaderUrl);
+  
   injectScript(
     ccmLoaderUrl,
-    function onSuccess() {},
+    function onSuccess() {
+      log("CCM loader loaded successfully");
+    },
     function onFailure() {
-      log("Failed to load /ccm.loader.js");
+      log("Failed to load CCM loader from: " + ccmLoaderUrl);
     }
   );
 };
 
 function buildCCMVariables() {
   addEventCallback(function (ctid, eventData) {
-    const defaultConsent = {
-      ad_storage: isConsentGranted("ad_storage"),
-      ad_user_data: isConsentGranted("ad_user_data"),
-      ad_personalization: isConsentGranted("ad_personalization"),
-      analytics_storage: isConsentGranted("analytics_storage"),
-      functionality_storage: isConsentGranted("functionality_storage"),
-      personalization_storage: isConsentGranted("personalization_storage"),
-      security_storage: isConsentGranted("security_storage"),
-    };
+    const categories = Object.values(CONSENT_CATEGORIES);
+    const defaultConsent = {};
+    
+    for (let i = 0; i < categories.length; i++) {
+      const categoryName = categories[i];
+      defaultConsent[categoryName] = isConsentGranted(categoryName);
+    }
+    
     setInWindow("defaultCCMGtagConsent", defaultConsent, true);
     log("Tag count for container " + ctid + ": " + eventData.tags.length);
+    log("CCM consent state:", defaultConsent);
   });
 }
 
@@ -756,6 +1074,22 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://ccm.merudata.app/*"
+              },
+              {
+                "type": 1,
+                "string": "https://ccm-stage.merudata.app/*"
+              },
+              {
+                "type": 1,
+                "string": "https://ccm-test.merudata.app/*"
+              },
+              {
+                "type": 1,
+                "string": "https://ccm-dev.merudata.app/*"
+              },
+              {
+                "type": 1,
+                "string": "https://*.merudata.app/*"
               }
             ]
           }

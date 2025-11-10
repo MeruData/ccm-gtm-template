@@ -3,10 +3,45 @@ GTM template for Meru Data Cookie Consent Manager (CCM).
 
 ## Overview
 
-The **Meru Data Cookie Consent Manager Integration Template** provides seamless integration between **Meru Data Cookie Consent Manager (CCM)** and **Google Consent Mode**. This template ensures accurate synchronization of consent preferences with Google’s consent types, enabling businesses to:
+The **Meru Data Cookie Consent Manager Integration Template** provides seamless integration between **Meru Data Cookie Consent Manager (CCM)** and **Google Consent Mode**. This template ensures accurate synchronization of consent preferences with Google's consent types, enabling businesses to:
 
 - Comply with privacy regulations like GDPR and CCPA.
 - Maintain effective website and app functionality.
+- **NEW**: Support Global Privacy Control (GPC) signals for enhanced privacy compliance.
+
+## New in Version 1.1.0 - Global Privacy Control Support
+
+### Global Privacy Control (GPC) Features
+- **Automatic GPC Detection**: Detects `navigator.globalPrivacyControl` signal from user's browser
+- **Configurable Categories**: Choose which consent categories to deny when GPC is enabled
+- **CCPA Compliance**: Automatically honors "Do Not Sell" preferences
+- **Backwards Compatible**: Existing configurations continue working unchanged
+- **Opt-in Configuration**: GPC features are disabled by default
+
+### How GPC Works
+1. **Detection**: Template automatically detects if user has GPC enabled in their browser
+2. **Configuration Options**:
+   - **Default Behavior**: Deny all categories except `security_storage` when GPC detected
+   - **Selective Denial**: Configure specific categories to deny (recommended)
+3. **Application**: GPC preferences are applied after default consent but before cookie consent
+
+### GPC Configuration
+
+#### Enable GPC Support
+1. In the template configuration, expand **"Global Privacy Control (GPC) Settings"**
+2. Check **"Enable Global Privacy Control Detection"**
+3. (Optional) Configure specific categories to deny in the **"GPC Categories to Deny"** table
+
+#### Recommended GPC Categories for CCPA Compliance
+- `ad_storage` - Advertising cookies and identifiers
+- `ad_user_data` - User data for advertising
+- `ad_personalization` - Personalized advertising
+
+#### Browser Compatibility
+- **Firefox**: Enable GPC in privacy settings
+- **Chrome**: Use privacy extensions like Privacy Badger
+- **Safari**: Enable Privacy Report features
+- **Other browsers**: Graceful degradation (no errors)
 
 ## Consent Types Supported
 
