@@ -155,87 +155,89 @@ function detectGpcSignal() {
   return gpcSignal;
 }
 
-function validateGpcConfiguration(gpcCategories) {
-  if (!isArray(gpcCategories)) {
-    log("GPC categories configuration is not an array, using defaults");
-    return [];
-  }
-  
-  const validCategories = [];
-  const validCategoryNames = Object.values(CONSENT_CATEGORIES);
-  
-  for (let i = 0; i < gpcCategories.length; i++) {
-    const row = gpcCategories[i];
-    if (!row || typeof row !== 'object') {
-      log("Invalid GPC category configuration at index " + i);
-      continue;
-    }
-    
-    if (!row.consentCategory || validCategoryNames.indexOf(row.consentCategory) === -1) {
-      log("Invalid or missing category in GPC configuration:", row.consentCategory);
-      continue;
-    }
-    
-    if (row.consentCategory === CONSENT_CATEGORIES.SECURITY_STORAGE) {
-      log("Warning: security_storage should not be denied via GPC");
-      continue;
-    }
-    
-    validCategories.push(row);
-  }
-  
-  return validCategories;
-}
 
-function createSelectiveDeniedPreferences(configuredCategories) {
-  const preferences = {};
-  const categories = Object.values(CONSENT_CATEGORIES);
-  
-  for (let i = 0; i < categories.length; i++) {
-    const categoryName = categories[i];
-    preferences[categoryName] = isConsentGranted(categoryName) ? DEFAULT_CONSENT_STATE.GRANTED : DEFAULT_CONSENT_STATE.DENIED;
-  }
-  
-  preferences[CONSENT_CATEGORIES.SECURITY_STORAGE] = DEFAULT_CONSENT_STATE.GRANTED;
-  
-  for (let i = 0; i < configuredCategories.length; i++) {
-    const row = configuredCategories[i];
-    if (row.consentCategory) {
-      preferences[row.consentCategory] = DEFAULT_CONSENT_STATE.DENIED;
-      log("GPC: Denying category " + row.consentCategory);
-    }
-  }
-  
-  return preferences;
-}
 
 function buildGpcPreferences() {
-  const configuredCategories = validateGpcConfiguration(
-    getConfigValue(data, 'gpcCategoriesTable', [])
-  );
+  const gpcSettingRegionTable = getConfigValue(data, 'gpcSettingRegionTable', []);
   
-  if (configuredCategories.length === 0) {
-    log("No specific GPC categories configured, denying all except security_storage");
-    return createDefaultDeniedPreferences();
+  // If no GPC configuration is provided, deny all categories except security_storage
+  if (!isArray(gpcSettingRegionTable) || gpcSettingRegionTable.length === 0) {
+    log("No GPC configuration provided, defaulting to deny all categories except security_storage");
+    const defaultPreferences = {};
+    const categories = Object.values(CONSENT_CATEGORIES);
+    
+    for (let i = 0; i < categories.length; i++) {
+      const categoryName = categories[i];
+      defaultPreferences[categoryName] = categoryName === CONSENT_CATEGORIES.SECURITY_STORAGE 
+        ? DEFAULT_CONSENT_STATE.GRANTED 
+        : DEFAULT_CONSENT_STATE.DENIED;
+    }
+    
+    log("GPC default preferences:", defaultPreferences);
+    return defaultPreferences;
   }
   
-  log("Using selective GPC category denial");
-  return createSelectiveDeniedPreferences(configuredCategories);
+  // Process GPC configuration by region (similar to default consent settings)
+  const regionBasedPreferences = [];
+  
+  gpcSettingRegionTable.forEach((row) => {
+    if (!row || typeof row !== 'object') {
+      log("Warning: Invalid row in gpcSettingRegionTable");
+      return;
+    }
+    
+    const region = splitInput(getConfigValue(row, 'region', ''));
+    let gpcConsentStatus = {
+      ad_storage: getConfigValue(row, 'ad_storage', DEFAULT_CONSENT_STATE.DENIED),
+      ad_user_data: getConfigValue(row, 'ad_user_data', DEFAULT_CONSENT_STATE.DENIED),
+      ad_personalization: getConfigValue(row, 'ad_personalization', DEFAULT_CONSENT_STATE.DENIED),
+      analytics_storage: getConfigValue(row, 'analytics_storage', DEFAULT_CONSENT_STATE.DENIED),
+      functionality_storage: getConfigValue(row, 'functionality_storage', DEFAULT_CONSENT_STATE.DENIED),
+      personalization_storage: getConfigValue(row, 'personalization_storage', DEFAULT_CONSENT_STATE.DENIED),
+      security_storage: DEFAULT_CONSENT_STATE.GRANTED, // Always granted
+    };
+    
+    if (region.length > 0) {
+      gpcConsentStatus.region = region;
+    }
+    
+    log("GPC consent status for region:", region.length > 0 ? region : "global", gpcConsentStatus);
+    regionBasedPreferences.push(gpcConsentStatus);
+  });
+  
+  // For region-based GPC, we return the array of preferences
+  // The actual application will be handled by updateConsentState for each region
+  return regionBasedPreferences;
 }
 
 function applyConsentPreferences(preferences) {
   log("Applying consent preferences:", preferences);
-  updateConsentState(preferences);
+  
+  // Handle both single preference object and array of region-based preferences
+  if (isArray(preferences)) {
+    // Apply each region-based preference
+    preferences.forEach((regionPreference) => {
+      updateConsentState(regionPreference);
+    });
+  } else {
+    // Apply single preference object
+    updateConsentState(preferences);
+  }
 }
 
 function isGpcEnabled() {
+  const enableGpc = getConfigValue(data, 'enableGpc', false);
+  if (!enableGpc) {
+    return false;
+  }
+  
   const gpcVariable = getConfigValue(data, 'gpcVariable', null);
   return gpcVariable !== null && gpcVariable !== undefined && gpcVariable !== '';
 }
 
 function handleGpcSignal() {
   if (!isGpcEnabled()) {
-    log("GPC detection disabled");
+    log("GPC is disabled or not configured");
     return;
   }
 

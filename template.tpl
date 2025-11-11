@@ -42,14 +42,23 @@ ___TEMPLATE_PARAMETERS___
       {
         "type": "NON_EMPTY"
       }
-    ]
+    ],
+    "help": "Enter the unique Script GUID provided by Meru Data for your website."
   },
   {
     "type": "GROUP",
     "name": "gpcSettings",
     "displayName": "Global Privacy Control (GPC) Settings",
-    "groupStyle": "ZIPPY_OPEN",
+    "groupStyle": "ZIPPY_CLOSED",
     "subParams": [
+      {
+        "type": "CHECKBOX",
+        "name": "enableGpc",
+        "checkboxText": "Enable Global Privacy Control",
+        "simpleValueType": true,
+        "defaultValue": false,
+        "help": "Enable Global Privacy Control (GPC) support. When enabled, the template will respect GPC signals from users' browsers."
+      },
       {
         "type": "SELECT",
         "name": "gpcVariable",
@@ -58,55 +67,170 @@ ___TEMPLATE_PARAMETERS___
         "selectItems": [],
         "simpleValueType": true,
         "help": "Select a Custom JavaScript Variable that returns true when Global Privacy Control is detected. The variable should check navigator.globalPrivacyControl.",
-        "valueHint": "{{GPC Enabled}}"
+        "valueHint": "{{GPC Enabled}}",
+        "enablingConditions": [
+          {
+            "paramName": "enableGpc",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ]
       },
       {
         "type": "PARAM_TABLE",
-        "name": "gpcCategoriesTable",
-        "displayName": "GPC Categories to Deny",
-        "help": "Configure which consent categories should be denied when GPC signal is detected. If no categories are specified, all categories except security_storage will be denied.",
+        "name": "gpcSettingRegionTable",
+        "displayName": "GPC Consent Settings by Region",
         "paramTableColumns": [
           {
             "param": {
+              "type": "TEXT",
+              "name": "region",
+              "simpleValueType": true,
+              "displayName": "Region",
+              "help": "Enter Region codes, expressed using country and/or subdivisions in ISO 3166-2 format. Leave empty for global GPC settings.",
+              "valueHint": "eg. US-CA, US-TX, CA, UK",
+              "canBeEmptyString": true
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
               "type": "SELECT",
-              "name": "consentCategory",
-              "displayName": "Consent Category",
+              "name": "analytics_storage",
+              "displayName": "Analytics Storage",
               "macrosInSelect": false,
               "selectItems": [
                 {
-                  "value": "ad_storage",
-                  "displayValue": "Ad Storage"
+                  "value": "granted",
+                  "displayValue": "granted"
                 },
                 {
-                  "value": "ad_user_data",
-                  "displayValue": "Ad User Data"
-                },
-                {
-                  "value": "ad_personalization",
-                  "displayValue": "Ad Personalization"
-                },
-                {
-                  "value": "analytics_storage",
-                  "displayValue": "Analytics Storage"
-                },
-                {
-                  "value": "functionality_storage",
-                  "displayValue": "Functionality Storage"
-                },
-                {
-                  "value": "personalization_storage",
-                  "displayValue": "Personalization Storage"
+                  "value": "denied",
+                  "displayValue": "denied"
                 }
               ],
               "simpleValueType": true,
-              "help": "Select the consent category to deny when GPC signal is detected."
+              "defaultValue": "denied",
+              "help": "Consent state for analytics_storage when GPC is detected."
             },
-            "isUnique": true
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_storage",
+              "displayName": "Ad Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for ad_storage when GPC is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_user_data",
+              "displayName": "Ad User Data",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for ad_user_data when GPC is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_personalization",
+              "displayName": "Ad Personalization",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for ad_personalization when GPC is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "functionality_storage",
+              "displayName": "Functionality Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for functionality_storage when GPC is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "personalization_storage",
+              "displayName": "Personalization Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for personalization_storage when GPC is detected."
+            },
+            "isUnique": false
           }
         ],
+        "help": "Configure consent settings for Global Privacy Control by region. If no configuration is provided, all consent categories (except security_storage) will be denied when GPC is detected.",
+        "newRowButtonText": "Add Region",
         "enablingConditions": [
           {
-            "paramName": "enable_gpc",
+            "paramName": "enableGpc",
             "paramValue": true,
             "type": "EQUALS"
           }
@@ -117,13 +241,13 @@ ___TEMPLATE_PARAMETERS___
   {
     "type": "GROUP",
     "name": "newDefaultSettings",
-    "displayName": "Default Settings",
-    "groupStyle": "NO_ZIPPY",
+    "displayName": "Default Consent Settings",
+    "groupStyle": "ZIPPY_OPEN",
     "subParams": [
       {
         "type": "PARAM_TABLE",
         "name": "defaultSettingRegionTable",
-        "displayName": "",
+        "displayName": "Consent Settings by Region",
         "paramTableColumns": [
           {
             "param": {
@@ -299,7 +423,8 @@ ___TEMPLATE_PARAMETERS___
               1
             ]
           }
-        ]
+        ],
+        "newRowButtonText": "Add Region"
       }
     ]
   },
@@ -513,87 +638,87 @@ function detectGpcSignal() {
   return gpcSignal;
 }
 
-function validateGpcConfiguration(gpcCategories) {
-  if (!isArray(gpcCategories)) {
-    log("GPC categories configuration is not an array, using defaults");
-    return [];
-  }
-  
-  const validCategories = [];
-  const validCategoryNames = Object.values(CONSENT_CATEGORIES);
-  
-  for (let i = 0; i < gpcCategories.length; i++) {
-    const row = gpcCategories[i];
-    if (!row || typeof row !== 'object') {
-      log("Invalid GPC category configuration at index " + i);
-      continue;
-    }
-    
-    if (!row.consentCategory || validCategoryNames.indexOf(row.consentCategory) === -1) {
-      log("Invalid or missing category in GPC configuration:", row.consentCategory);
-      continue;
-    }
-    
-    if (row.consentCategory === CONSENT_CATEGORIES.SECURITY_STORAGE) {
-      log("Warning: security_storage should not be denied via GPC");
-      continue;
-    }
-    
-    validCategories.push(row);
-  }
-  
-  return validCategories;
-}
-
-function createSelectiveDeniedPreferences(configuredCategories) {
-  const preferences = {};
-  const categories = Object.values(CONSENT_CATEGORIES);
-  
-  for (let i = 0; i < categories.length; i++) {
-    const categoryName = categories[i];
-    preferences[categoryName] = isConsentGranted(categoryName) ? DEFAULT_CONSENT_STATE.GRANTED : DEFAULT_CONSENT_STATE.DENIED;
-  }
-  
-  preferences[CONSENT_CATEGORIES.SECURITY_STORAGE] = DEFAULT_CONSENT_STATE.GRANTED;
-  
-  for (let i = 0; i < configuredCategories.length; i++) {
-    const row = configuredCategories[i];
-    if (row.consentCategory) {
-      preferences[row.consentCategory] = DEFAULT_CONSENT_STATE.DENIED;
-      log("GPC: Denying category " + row.consentCategory);
-    }
-  }
-  
-  return preferences;
-}
-
 function buildGpcPreferences() {
-  const configuredCategories = validateGpcConfiguration(
-    getConfigValue(data, 'gpcCategoriesTable', [])
-  );
+  const gpcSettingRegionTable = getConfigValue(data, 'gpcSettingRegionTable', []);
   
-  if (configuredCategories.length === 0) {
-    log("No specific GPC categories configured, denying all except security_storage");
-    return createDefaultDeniedPreferences();
+  // If no GPC configuration is provided, deny all categories except security_storage
+  if (!isArray(gpcSettingRegionTable) || gpcSettingRegionTable.length === 0) {
+    log("No GPC configuration provided, defaulting to deny all categories except security_storage");
+    const defaultPreferences = {};
+    const categories = Object.values(CONSENT_CATEGORIES);
+    
+    for (let i = 0; i < categories.length; i++) {
+      const categoryName = categories[i];
+      defaultPreferences[categoryName] = categoryName === CONSENT_CATEGORIES.SECURITY_STORAGE 
+        ? DEFAULT_CONSENT_STATE.GRANTED 
+        : DEFAULT_CONSENT_STATE.DENIED;
+    }
+    
+    log("GPC default preferences:", defaultPreferences);
+    return defaultPreferences;
   }
   
-  log("Using selective GPC category denial");
-  return createSelectiveDeniedPreferences(configuredCategories);
+  // Process GPC configuration by region (similar to default consent settings)
+  const regionBasedPreferences = [];
+  
+  gpcSettingRegionTable.forEach((row) => {
+    if (!row || typeof row !== 'object') {
+      log("Warning: Invalid row in gpcSettingRegionTable");
+      return;
+    }
+    
+    const region = splitInput(getConfigValue(row, 'region', ''));
+    let gpcConsentStatus = {
+      ad_storage: getConfigValue(row, 'ad_storage', DEFAULT_CONSENT_STATE.DENIED),
+      ad_user_data: getConfigValue(row, 'ad_user_data', DEFAULT_CONSENT_STATE.DENIED),
+      ad_personalization: getConfigValue(row, 'ad_personalization', DEFAULT_CONSENT_STATE.DENIED),
+      analytics_storage: getConfigValue(row, 'analytics_storage', DEFAULT_CONSENT_STATE.DENIED),
+      functionality_storage: getConfigValue(row, 'functionality_storage', DEFAULT_CONSENT_STATE.DENIED),
+      personalization_storage: getConfigValue(row, 'personalization_storage', DEFAULT_CONSENT_STATE.DENIED),
+      security_storage: DEFAULT_CONSENT_STATE.GRANTED, // Always granted
+    };
+    
+    if (region.length > 0) {
+      gpcConsentStatus.region = region;
+    }
+    
+    log("GPC consent status for region:", region.length > 0 ? region : "global", gpcConsentStatus);
+    regionBasedPreferences.push(gpcConsentStatus);
+  });
+  
+  // For region-based GPC, we return the array of preferences
+  // The actual application will be handled by updateConsentState for each region
+  return regionBasedPreferences;
 }
 
 function applyConsentPreferences(preferences) {
   log("Applying consent preferences:", preferences);
-  updateConsentState(preferences);
+  
+  // Handle both single preference object and array of region-based preferences
+  if (isArray(preferences)) {
+    // Apply each region-based preference
+    preferences.forEach((regionPreference) => {
+      updateConsentState(regionPreference);
+    });
+  } else {
+    // Apply single preference object
+    updateConsentState(preferences);
+  }
 }
 
 function isGpcEnabled() {
+  const enableGpc = getConfigValue(data, 'enableGpc', false);
+  if (!enableGpc) {
+    return false;
+  }
+  
   const gpcVariable = getConfigValue(data, 'gpcVariable', null);
   return gpcVariable !== null && gpcVariable !== undefined && gpcVariable !== '';
 }
 
 function handleGpcSignal() {
   if (!isGpcEnabled()) {
-    log("GPC detection disabled");
+    log("GPC is disabled or not configured");
     return;
   }
 

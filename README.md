@@ -9,39 +9,66 @@ The **Meru Data Cookie Consent Manager Integration Template** provides seamless 
 - Maintain effective website and app functionality.
 - **NEW**: Support Global Privacy Control (GPC) signals for enhanced privacy compliance.
 
-## New in Version 1.1.0 - Global Privacy Control Support
+## Global Privacy Control (GPC) Support
 
 ### Global Privacy Control (GPC) Features
-- **Automatic GPC Detection**: Detects `navigator.globalPrivacyControl` signal from user's browser
-- **Configurable Categories**: Choose which consent categories to deny when GPC is enabled
-- **CCPA Compliance**: Automatically honors "Do Not Sell" preferences
-- **Backwards Compatible**: Existing configurations continue working unchanged
-- **Opt-in Configuration**: GPC features are disabled by default
+The Meru Data CCM template now supports Global Privacy Control (GPC) signals to automatically respect user privacy preferences when GPC is enabled in their browser.
 
 ### How GPC Works
-1. **Detection**: Template automatically detects if user has GPC enabled in their browser
-2. **Configuration Options**:
-   - **Default Behavior**: Deny all categories except `security_storage` when GPC detected
-   - **Selective Denial**: Configure specific categories to deny (recommended)
-3. **Application**: GPC preferences are applied after default consent but before cookie consent
+1. **Detection**: Uses a Custom JavaScript Variable to detect `navigator.globalPrivacyControl` signal
+2. **Automatic Denial**: When GPC is detected, consent categories are automatically denied
+3. **Override Behavior**: GPC preferences override any existing cookie consent
+4. **Compliance**: Ensures CCPA "Do Not Sell" compliance automatically
 
-### GPC Configuration
+### GPC Implementation Steps
 
-#### Enable GPC Support
-1. In the template configuration, expand **"Global Privacy Control (GPC) Settings"**
-2. Check **"Enable Global Privacy Control Detection"**
-3. (Optional) Configure specific categories to deny in the **"GPC Categories to Deny"** table
+#### Step 1: Create GPC Detection Variable
+1. Go to **Variables** section in Google Tag Manager
+2. Click **New** under **User-Defined Variables**
+3. Select **Custom JavaScript** as the Variable Type
+4. Enter this Custom JavaScript code:
+```javascript
+function() {
+  try {
+    return !!(navigator && navigator.globalPrivacyControl);
+  } catch (e) {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'gtm_js_exception',
+      errorMessage: e.message,
+      errorStack: e.stack
+    });
+    return false;
+  }
+}
+```
+5. Save the variable with name: `GPC Enabled`
 
-#### Recommended GPC Categories for CCPA Compliance
-- `ad_storage` - Advertising cookies and identifiers
-- `ad_user_data` - User data for advertising
-- `ad_personalization` - Personalized advertising
+#### Step 2: Configure GPC in Template
+1. In the Meru Data CCM template configuration
+2. Expand **"Global Privacy Control (GPC) Settings"**
+3. **Enable GPC**: Check **"Enable Global Privacy Control"** to activate GPC support
+4. Set **"GPC Detection Variable"** to `{{GPC Enabled}}`
+5. Configure **"GPC Consent Settings by Region"** table:
+   - **Region**: Enter region codes (e.g., `US-CA`, `US-TX`, `CA`, `UK`) or leave empty for global settings
+   - **Consent Categories**: Set each category to `granted` or `denied` when GPC is detected
+   - **Default Behavior**: If no configuration is provided, all categories except `security_storage` will be denied when GPC is detected
+   - **CCPA Compliance**: For California compliance, consider setting all ad-related categories to `denied`
+
+Example configurations:
+- **Global GPC Settings**: Leave Region empty, set desired consent states
+- **California-specific**: Region = `US-CA`, deny all ad categories
+- **EU-specific**: Region = `UK,DE,FR`, customize based on GDPR requirements
+
+#### Optional Feature
+GPC support is **completely optional**. If you don't need GPC functionality:
+- Simply leave **"Enable Global Privacy Control"** unchecked
+- The template will function normally without any GPC processing
+- No performance impact when disabled
 
 #### Browser Compatibility
-- **Firefox**: Enable GPC in privacy settings
-- **Chrome**: Use privacy extensions like Privacy Badger
-- **Safari**: Enable Privacy Report features
-- **Other browsers**: Graceful degradation (no errors)
+- **Supported**: Firefox (native), Chrome with extensions (OptMeowt, Privacy Badger), Safari (partial)
+- **Graceful Degradation**: No errors on unsupported browsers
 
 ## Consent Types Supported
 
