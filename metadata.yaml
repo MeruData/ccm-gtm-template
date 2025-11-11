@@ -2,9 +2,11 @@ homepage: "https://www.merudata.com/"
 documentation: "https://github.com/MeruData/ccm-gtm-template/blob/main/README.md"
 versions:
   # Latest version
+  - sha: 26fbaddec0d87115c19c30e38707e891edcd7262
+    changeNotes: Region support for Global Privacy Control Configuration
+  # Older versions
   - sha: f3da9bde422853abc039490afd9930c12a96b63e
     changeNotes: Added Global Privacy Control Support
-  # Older versions
   - sha: 9908f031c5fbfda2c977470bfb28020f606d2c1e
     changeNotes: Updated to use encoded uri for inject script url.
   - sha: 8ead78ab5405d492c54b7b36d5d3476708322bb9
