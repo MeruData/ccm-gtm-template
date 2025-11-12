@@ -513,7 +513,7 @@ const DEFAULT_CONSENT_STATE = {
 
 const CONFIG = {
   CONSENT_WAIT_TIME: 500,
-  CCM_BASE_URL: "https://ccm.merudata.app/assets/",
+  CCM_BASE_URL: "https://ccm.merudata.app",
   DEVELOPER_ID: "dYzUxZD",
   COOKIE_CONSENT_NAME: "mppCookie_Consent"
 };
