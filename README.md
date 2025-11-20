@@ -7,9 +7,9 @@ The **Meru Data Cookie Consent Manager Integration Template** provides seamless 
 
 - Comply with privacy regulations like GDPR and CCPA.
 - Maintain effective website and app functionality.
-- **NEW**: Support Global Privacy Control (GPC) signals for enhanced privacy compliance.
+- **NEW**: Support Global Privacy Control (GPC) and Do Not Track (DNT) signals for enhanced privacy compliance.
 
-## Global Privacy Control (GPC) Support
+## Privacy Signal Support (GPC & DNT)
 
 ### Global Privacy Control (GPC) Features
 The Meru Data CCM template now supports Global Privacy Control (GPC) signals to automatically respect user privacy preferences when GPC is enabled in their browser.
@@ -66,9 +66,68 @@ GPC support is **completely optional**. If you don't need GPC functionality:
 - The template will function normally without any GPC processing
 - No performance impact when disabled
 
-#### Browser Compatibility
-- **Supported**: Firefox (native), Chrome with extensions (OptMeowt, Privacy Badger), Safari (partial)
+### Do Not Track (DNT) Support
+
+#### Do Not Track (DNT) Features
+The template also supports the legacy Do Not Track (DNT) standard for broader browser compatibility.
+
+#### How DNT Works
+1. **Detection**: Uses a Custom JavaScript Variable to detect `navigator.doNotTrack` signal
+2. **Automatic Denial**: When DNT is detected, consent categories are automatically denied
+3. **Priority**: GPC takes precedence over DNT when both are active
+4. **Fallback**: Provides privacy support for browsers without GPC
+
+#### DNT Implementation Steps
+
+**Step 1: Create DNT Detection Variable**
+1. Go to **Variables** section in Google Tag Manager
+2. Click **New** under **User-Defined Variables**
+3. Select **Custom JavaScript** as the Variable Type
+4. Enter this Custom JavaScript code:
+```javascript
+function() {
+  try {
+    return navigator.doNotTrack === '1';
+  } catch (e) {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'gtm_js_exception',
+      errorMessage: e.message,
+      errorStack: e.stack
+    });
+    return false;
+  }
+}
+```
+5. Save the variable with name: `DNT Enabled`
+
+**Step 2: Configure DNT in Template**
+1. In the Meru Data CCM template configuration
+2. Expand **"Do Not Track (DNT) Settings"**
+3. **Enable DNT**: Check **"Enable Do Not Track"** to activate DNT support
+4. Set **"DNT Detection Variable"** to `{{DNT Enabled}}`
+5. Configure **"DNT Consent Settings by Region"** table:
+   - **Region**: Enter region codes (e.g., `US-CA`, `US-TX`, `CA`, `UK`) or leave empty for global settings
+   - **Consent Categories**: Set each category to `granted` or `denied` when DNT is detected
+   - **Default Behavior**: If no configuration is provided, all categories except `security_storage` will be denied when DNT is detected
+
+#### Privacy Signal Precedence
+When both GPC and DNT are enabled:
+- **GPC takes priority**: GPC is a stronger, legally-binding signal
+- **DNT as fallback**: DNT preferences only apply if GPC is not active
+- **Clear compliance**: Ensures legal requirements are met while maximizing privacy coverage
+
+#### Optional Feature
+DNT support is **completely optional**. If you don't need DNT functionality:
+- Simply leave **"Enable Do Not Track"** unchecked
+- The template will function normally without any DNT processing
+- No performance impact when disabled
+
+### Browser Compatibility Summary
+- **DNT**: All major browsers (Chrome, Firefox, Safari, Edge, IE 11+)
+- **GPC**: Firefox (native), Chrome with extensions (OptMeowt, Privacy Badger), Safari (partial)
 - **Graceful Degradation**: No errors on unsupported browsers
+- **Recommendation**: Enable both for maximum privacy signal coverage
 
 ## Consent Types Supported
 

@@ -224,13 +224,250 @@ ___TEMPLATE_PARAMETERS___
               "help": "Consent state for personalization_storage when GPC is detected."
             },
             "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "security_storage",
+              "displayName": "Security Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "granted",
+              "help": "Consent state for security_storage when GPC is detected."
+            },
+            "isUnique": false
           }
         ],
-        "help": "Configure consent settings for Global Privacy Control by region. If no configuration is provided, all consent categories (except security_storage) will be denied when GPC is detected.",
+        "help": "Configure consent settings for Global Privacy Control by region. Leave security_storage as 'granted' for security features to work properly.",
         "newRowButtonText": "Add Region",
         "enablingConditions": [
           {
             "paramName": "enableGpc",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "GROUP",
+    "name": "dntSettings",
+    "displayName": "Do Not Track (DNT) Settings",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "CHECKBOX",
+        "name": "enableDnt",
+        "checkboxText": "Enable Do Not Track",
+        "simpleValueType": true,
+        "defaultValue": false,
+        "help": "Enable Do Not Track (DNT) support. When enabled, the template will respect DNT signals from users' browsers. Note: GPC takes precedence over DNT if both are enabled."
+      },
+      {
+        "type": "SELECT",
+        "name": "dntVariable",
+        "displayName": "DNT Detection Variable",
+        "macrosInSelect": true,
+        "selectItems": [],
+        "simpleValueType": true,
+        "help": "Select a Custom JavaScript Variable that returns true when Do Not Track is enabled. The variable should check navigator.doNotTrack.",
+        "valueHint": "{{DNT Enabled}}",
+        "enablingConditions": [
+          {
+            "paramName": "enableDnt",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ]
+      },
+      {
+        "type": "PARAM_TABLE",
+        "name": "dntSettingRegionTable",
+        "displayName": "DNT Consent Settings by Region",
+        "paramTableColumns": [
+          {
+            "param": {
+              "type": "TEXT",
+              "name": "region",
+              "simpleValueType": true,
+              "displayName": "Region",
+              "help": "Enter Region codes, expressed using country and/or subdivisions in ISO 3166-2 format. Leave empty for global DNT settings.",
+              "valueHint": "eg. US-CA, US-TX, CA, UK",
+              "canBeEmptyString": true
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "analytics_storage",
+              "displayName": "Analytics Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for analytics_storage when DNT is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_storage",
+              "displayName": "Ad Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for ad_storage when DNT is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_user_data",
+              "displayName": "Ad User Data",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for ad_user_data when DNT is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "ad_personalization",
+              "displayName": "Ad Personalization",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for ad_personalization when DNT is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "functionality_storage",
+              "displayName": "Functionality Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for functionality_storage when DNT is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "personalization_storage",
+              "displayName": "Personalization Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "denied",
+              "help": "Consent state for personalization_storage when DNT is detected."
+            },
+            "isUnique": false
+          },
+          {
+            "param": {
+              "type": "SELECT",
+              "name": "security_storage",
+              "displayName": "Security Storage",
+              "macrosInSelect": false,
+              "selectItems": [
+                {
+                  "value": "granted",
+                  "displayValue": "granted"
+                },
+                {
+                  "value": "denied",
+                  "displayValue": "denied"
+                }
+              ],
+              "simpleValueType": true,
+              "defaultValue": "granted",
+              "help": "Consent state for security_storage when DNT is detected."
+            },
+            "isUnique": false
+          }
+        ],
+        "help": "Configure consent settings for Do Not Track by region. Leave security_storage as 'granted' for security features to work properly. Note: GPC settings take precedence over DNT if both are active.",
+        "newRowButtonText": "Add Region",
+        "enablingConditions": [
+          {
+            "paramName": "enableDnt",
             "paramValue": true,
             "type": "EQUALS"
           }
@@ -641,24 +878,11 @@ function detectGpcSignal() {
 function buildGpcPreferences() {
   const gpcSettingRegionTable = getConfigValue(data, 'gpcSettingRegionTable', []);
   
-  // If no GPC configuration is provided, deny all categories except security_storage
   if (!isArray(gpcSettingRegionTable) || gpcSettingRegionTable.length === 0) {
-    log("No GPC configuration provided, defaulting to deny all categories except security_storage");
-    const defaultPreferences = {};
-    const categories = Object.values(CONSENT_CATEGORIES);
-    
-    for (let i = 0; i < categories.length; i++) {
-      const categoryName = categories[i];
-      defaultPreferences[categoryName] = categoryName === CONSENT_CATEGORIES.SECURITY_STORAGE 
-        ? DEFAULT_CONSENT_STATE.GRANTED 
-        : DEFAULT_CONSENT_STATE.DENIED;
-    }
-    
-    log("GPC default preferences:", defaultPreferences);
-    return defaultPreferences;
+    log("No GPC configuration provided, skipping GPC consent updates");
+    return [];
   }
   
-  // Process GPC configuration by region (similar to default consent settings)
   const regionBasedPreferences = [];
   
   gpcSettingRegionTable.forEach((row) => {
@@ -675,7 +899,7 @@ function buildGpcPreferences() {
       analytics_storage: getConfigValue(row, 'analytics_storage', DEFAULT_CONSENT_STATE.DENIED),
       functionality_storage: getConfigValue(row, 'functionality_storage', DEFAULT_CONSENT_STATE.DENIED),
       personalization_storage: getConfigValue(row, 'personalization_storage', DEFAULT_CONSENT_STATE.DENIED),
-      security_storage: DEFAULT_CONSENT_STATE.GRANTED, // Always granted
+      security_storage: getConfigValue(row, 'security_storage', DEFAULT_CONSENT_STATE.GRANTED),
     };
     
     if (region.length > 0) {
@@ -686,22 +910,17 @@ function buildGpcPreferences() {
     regionBasedPreferences.push(gpcConsentStatus);
   });
   
-  // For region-based GPC, we return the array of preferences
-  // The actual application will be handled by updateConsentState for each region
   return regionBasedPreferences;
 }
 
 function applyConsentPreferences(preferences) {
   log("Applying consent preferences:", preferences);
   
-  // Handle both single preference object and array of region-based preferences
   if (isArray(preferences)) {
-    // Apply each region-based preference
     preferences.forEach((regionPreference) => {
       updateConsentState(regionPreference);
     });
   } else {
-    // Apply single preference object
     updateConsentState(preferences);
   }
 }
@@ -731,6 +950,110 @@ function handleGpcSignal() {
   log("GPC signal is enabled, applying consent restrictions");
   const gpcPreferences = buildGpcPreferences();
   applyConsentPreferences(gpcPreferences);
+}
+
+function detectDntSignal() {
+  const dntVariable = getConfigValue(data, 'dntVariable', null);
+  
+  if (!dntVariable) {
+    log("No DNT variable configured");
+    return false;
+  }
+  
+  const dntSignal = dntVariable === true || dntVariable === '1';
+  log("DNT signal from variable:", dntSignal, "type:", typeof dntVariable, "raw value:", dntVariable);
+  
+  return dntSignal;
+}
+
+function buildDntPreferences() {
+  const dntSettingRegionTable = getConfigValue(data, 'dntSettingRegionTable', []);
+  
+  if (!isArray(dntSettingRegionTable) || dntSettingRegionTable.length === 0) {
+    log("No DNT configuration provided, skipping DNT consent updates");
+    return [];
+  }
+  
+  const regionBasedPreferences = [];
+  
+  dntSettingRegionTable.forEach((row) => {
+    if (!row || typeof row !== 'object') {
+      log("Warning: Invalid row in dntSettingRegionTable");
+      return;
+    }
+    
+    const region = splitInput(getConfigValue(row, 'region', ''));
+    let dntConsentStatus = {
+      ad_storage: getConfigValue(row, 'ad_storage', DEFAULT_CONSENT_STATE.DENIED),
+      ad_user_data: getConfigValue(row, 'ad_user_data', DEFAULT_CONSENT_STATE.DENIED),
+      ad_personalization: getConfigValue(row, 'ad_personalization', DEFAULT_CONSENT_STATE.DENIED),
+      analytics_storage: getConfigValue(row, 'analytics_storage', DEFAULT_CONSENT_STATE.DENIED),
+      functionality_storage: getConfigValue(row, 'functionality_storage', DEFAULT_CONSENT_STATE.DENIED),
+      personalization_storage: getConfigValue(row, 'personalization_storage', DEFAULT_CONSENT_STATE.DENIED),
+      security_storage: getConfigValue(row, 'security_storage', DEFAULT_CONSENT_STATE.GRANTED),
+    };
+    
+    if (region.length > 0) {
+      dntConsentStatus.region = region;
+    }
+    
+    log("DNT consent status for region:", region.length > 0 ? region : "global", dntConsentStatus);
+    regionBasedPreferences.push(dntConsentStatus);
+  });
+  
+  return regionBasedPreferences;
+}
+
+function isDntEnabled() {
+  const enableDnt = getConfigValue(data, 'enableDnt', false);
+  if (!enableDnt) {
+    return false;
+  }
+  
+  const dntVariable = getConfigValue(data, 'dntVariable', null);
+  return dntVariable !== null && dntVariable !== undefined && dntVariable !== '';
+}
+
+function handleDntSignal() {
+  if (!isDntEnabled()) {
+    log("DNT is disabled or not configured");
+    return;
+  }
+
+  const dntSignal = detectDntSignal();
+  if (!dntSignal) {
+    log("DNT signal not detected or not enabled");
+    return;
+  }
+
+  log("DNT signal is enabled, applying consent restrictions");
+  const dntPreferences = buildDntPreferences();
+  applyConsentPreferences(dntPreferences);
+}
+
+function handlePrivacySignals() {
+  const gpcEnabled = isGpcEnabled();
+  const dntEnabled = isDntEnabled();
+  
+  if (gpcEnabled) {
+    const gpcSignal = detectGpcSignal();
+    if (gpcSignal) {
+      log("GPC signal detected - applying GPC preferences (DNT will be ignored)");
+      handleGpcSignal();
+      return;
+    }
+  }
+  
+  if (dntEnabled) {
+    const dntSignal = detectDntSignal();
+    if (dntSignal) {
+      log("DNT signal detected - applying DNT preferences");
+      handleDntSignal();
+      return;
+    }
+  }
+  
+  log("No privacy signals detected or enabled");
 }
 
 const main = (data) => {
@@ -776,7 +1099,7 @@ const main = (data) => {
 
   onConsentUpdate();
 
-  handleGpcSignal();
+  handlePrivacySignals();
 
   if (!scriptGuid) {
     log("Warning: No scriptGuid provided, CCM loader will not be injected");
