@@ -2,8 +2,8 @@ homepage: "https://www.merudata.com/"
 documentation: "https://github.com/MeruData/ccm-gtm-template/blob/main/README.md"
 versions:
   # Latest version
-  #- sha: [COMMIT_SHA_TO_BE_UPDATED]
-  #  changeNotes: Added Do Not Track (DNT) support with region-based configuration and GPC precedence
+  - sha: de8fa213376d4bfa35fa80fdd466530eeb2abb29
+    changeNotes: Added Do Not Track (DNT) support with region-based configuration and GPC precedence
   # Older versions
   - sha: 520f3ab0d02b1d3d7decf958aab68c2d729b74e7
     changeNotes: BugFix - Updated CCM base URL to remove /asset suffix
